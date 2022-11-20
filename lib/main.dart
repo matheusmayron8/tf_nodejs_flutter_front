@@ -209,12 +209,12 @@ class _BodyState extends State<Body> {
         MediaQuery.of(context).size.width >= 1300 //Responsive
             ? Image.asset(
                 'images/illustration-1.png',
-                width: 450,
+                width: 350,
               )
             : SizedBox(),
         Padding(
           padding: EdgeInsets.symmetric(
-              vertical: MediaQuery.of(context).size.height / 6),
+              vertical: MediaQuery.of(context).size.height / 16),
           child: Container(
             width: 320,
             child: _formLogin(context),
@@ -273,7 +273,7 @@ class _BodyState extends State<Body> {
           ),
         ),
         SizedBox(height: 40),
-        (_futureUserData == null) ? buildSignInButon() : buildeFutureBuilder(),
+        (_futureUserData == null) ? buildSignInButon() : buildFutureBuilder(),
         SizedBox(height: 40),
       ],
     );
@@ -334,6 +334,12 @@ class _BodyState extends State<Body> {
   void callLogin() {
     setState(() {
       //_futureUserData = null;
+      if (_fieldEmailController.text.isEmpty ||
+          _fieldPasswordController.text.isEmpty) {
+        showSnackbarMandatoryFields(context);
+        return;
+      }
+
       _futureUserData = _apiService.getToken(
           login: _fieldEmailController.text,
           password: _fieldPasswordController.text);
@@ -343,6 +349,8 @@ class _BodyState extends State<Body> {
   void goToHomeScreen(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       //When finish, call actions inside
+      _fieldEmailController.clear();
+      _fieldPasswordController.clear();
       Navigator.push(
         context,
         MaterialPageRoute(builder: ((context) => const HomeScreen())),
@@ -350,24 +358,26 @@ class _BodyState extends State<Body> {
     });
   }
 
-  void showSnackbarFailedLogin(BuildContext context) {
+  void showSnackbarMandatoryFields(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Falha ao realizar o login, verifique seu email e senha',
-          style: TextStyle(color: Colors.white),
+          'Campos login e senha são obrigatórios.',
+          style: TextStyle(color: Colors.black),
         ),
         backgroundColor: Colors.red,
       ),
     );
   }
 
-  FutureBuilder<UserData> buildeFutureBuilder() {
+  FutureBuilder<UserData> buildFutureBuilder() {
     return FutureBuilder<UserData>(
       future: _futureUserData,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const CircularProgressIndicator.adaptive();
+          return Column(
+            children: [SizedBox()],
+          );
         }
 
         if (snapshot.hasData) {
