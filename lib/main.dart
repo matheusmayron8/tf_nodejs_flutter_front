@@ -1,6 +1,8 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_atv_final/models/user_data.dart';
+import 'package:flutter_atv_final/services/api_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_atv_final/screens/home_screen.dart';
 import 'package:flutter_atv_final/screens/register_screen.dart';
@@ -109,7 +111,7 @@ class Menu extends StatelessWidget {
             borderRadius: BorderRadius.circular(15),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey[200],
+                color: Colors.grey[200]!,
                 spreadRadius: 10,
                 blurRadius: 12,
               ),
@@ -132,9 +134,11 @@ class Body extends StatefulWidget {
 }
 
 class _BodyState extends State<Body> {
-  final fieldEmailController = TextEditingController();
+  final _fieldEmailController = TextEditingController();
+  final _fieldPasswordController = TextEditingController();
 
-  final fieldPasswordController = TextEditingController();
+  final _apiService = ApiService();
+  Future<UserData>? _futureUserData;
 
   @override
   Widget build(BuildContext context) {
@@ -205,7 +209,7 @@ class _BodyState extends State<Body> {
         MediaQuery.of(context).size.width >= 1300 //Responsive
             ? Image.asset(
                 'images/illustration-1.png',
-                width: 500,
+                width: 450,
               )
             : SizedBox(),
         Padding(
@@ -220,30 +224,33 @@ class _BodyState extends State<Body> {
     );
   }
 
-  var _isLoading = false;
-
   Widget _formLogin(BuildContext context) {
     return Column(
       children: [
         TextField(
+          controller: _fieldEmailController,
           decoration: InputDecoration(
-            hintText: 'Digite seu email',
+            hintText: 'Digite seu username',
             filled: true,
             fillColor: Colors.blueGrey[50],
             labelStyle: TextStyle(fontSize: 12),
             contentPadding: EdgeInsets.only(left: 30),
             enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.blueGrey[50]),
+              borderSide: BorderSide(color: Colors.blueGrey[50]!),
               borderRadius: BorderRadius.circular(15),
             ),
             focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.blueGrey[50]),
+              borderSide: BorderSide(color: Colors.blueGrey[50]!),
               borderRadius: BorderRadius.circular(15),
             ),
           ),
         ),
         SizedBox(height: 30),
         TextField(
+          controller: _fieldPasswordController,
+          obscureText: true,
+          autocorrect: false,
+          enableSuggestions: false,
           decoration: InputDecoration(
             hintText: 'Senha',
             counterText: 'Esqueceu a senha?',
@@ -256,16 +263,25 @@ class _BodyState extends State<Body> {
             labelStyle: TextStyle(fontSize: 12),
             contentPadding: EdgeInsets.only(left: 30),
             enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.blueGrey[50]),
+              borderSide: BorderSide(color: Colors.blueGrey[50]!),
               borderRadius: BorderRadius.circular(15),
             ),
             focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.blueGrey[50]),
+              borderSide: BorderSide(color: Colors.blueGrey[50]!),
               borderRadius: BorderRadius.circular(15),
             ),
           ),
         ),
         SizedBox(height: 40),
+        (_futureUserData == null) ? buildSignInButon() : buildeFutureBuilder(),
+        SizedBox(height: 40),
+      ],
+    );
+  }
+
+  Widget buildSignInButon({bool hasError = false}) {
+    return Column(
+      children: [
         Container(
           decoration: BoxDecoration(
             color: Colors.white,
@@ -278,44 +294,91 @@ class _BodyState extends State<Body> {
               ),
             ],
           ),
-          child: ElevatedButton(
-            child: Container(
-                width: double.infinity,
-                height: 50,
-                child: _isLoading
-                    ? Container(
-                        width: 24,
-                        height: 24,
-                        alignment: Alignment.center,
-                        padding: const EdgeInsets.all(2.0),
-                        child: const CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 3,
-                        ),
-                      )
-                    : Center(child: Text("Entrar"))),
-            onPressed: () => _isLoading ? null : goToHomeScreen(context),
-            style: ElevatedButton.styleFrom(
-              primary: Color.fromARGB(255, 68, 209, 155),
-              onPrimary: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                child: Container(
+                    width: double.infinity,
+                    height: 50,
+                    child: Center(child: Text("Entrar"))),
+                onPressed: () => callLogin(),
+                style: ElevatedButton.styleFrom(
+                  primary: Color.fromARGB(255, 68, 209, 155),
+                  onPrimary: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
         ),
-        SizedBox(height: 40),
+        hasError
+            ? Column(
+                children: [
+                  SizedBox(height: 8),
+                  Text(
+                    'Verifique seu login e senha',
+                    style: TextStyle(
+                      color: Colors.red,
+                    ),
+                  )
+                ],
+              )
+            : SizedBox(),
       ],
     );
   }
 
-  void goToHomeScreen(BuildContext context) {
+  void callLogin() {
     setState(() {
-      _isLoading = !_isLoading;
+      //_futureUserData = null;
+      _futureUserData = _apiService.getToken(
+          login: _fieldEmailController.text,
+          password: _fieldPasswordController.text);
     });
-    /*Navigator.push(
-      context,
-      MaterialPageRoute(builder: ((context) => const HomeScreen())),
-    );*/
+  }
+
+  void goToHomeScreen(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      //When finish, call actions inside
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: ((context) => const HomeScreen())),
+      );
+    });
+  }
+
+  void showSnackbarFailedLogin(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Falha ao realizar o login, verifique seu email e senha',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
+  FutureBuilder<UserData> buildeFutureBuilder() {
+    return FutureBuilder<UserData>(
+      future: _futureUserData,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const CircularProgressIndicator.adaptive();
+        }
+
+        if (snapshot.hasData) {
+          goToHomeScreen(context);
+          return buildSignInButon();
+        } else if (snapshot.hasError) {
+          return buildSignInButon(hasError: true);
+        }
+
+        return buildSignInButon();
+      },
+    );
   }
 }

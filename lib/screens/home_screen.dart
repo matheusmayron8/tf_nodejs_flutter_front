@@ -2,7 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key key}) : super(key: key);
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -131,11 +131,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 labelStyle: TextStyle(fontSize: 12),
                 contentPadding: EdgeInsets.only(left: 30),
                 enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.blueGrey[50]),
+                  borderSide: BorderSide(color: Colors.blueGrey[50]!),
                   borderRadius: BorderRadius.circular(15),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.blueGrey[50]),
+                  borderSide: BorderSide(color: Colors.blueGrey[50]!),
                   borderRadius: BorderRadius.circular(15),
                 ),
               ),
@@ -210,7 +210,7 @@ class LogoutMenu extends StatelessWidget {
   Widget _menuItem({
     String title = 'Title Menu',
     isActive = false,
-    Function onTap,
+    required Function onTap,
   }) {
     return GestureDetector(
       onTap: () => onTap(),

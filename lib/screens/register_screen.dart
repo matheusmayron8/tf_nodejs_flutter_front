@@ -2,7 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 class RegisterScreen extends StatelessWidget {
-  const RegisterScreen({Key key}) : super(key: key);
+  const RegisterScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -42,11 +42,11 @@ class RegisterScreen extends StatelessWidget {
             labelStyle: TextStyle(fontSize: 12),
             contentPadding: EdgeInsets.only(left: 30),
             enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.blueGrey[50]),
+              borderSide: BorderSide(color: Colors.blueGrey[50]!),
               borderRadius: BorderRadius.circular(15),
             ),
             focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.blueGrey[50]),
+              borderSide: BorderSide(color: Colors.blueGrey[50]!),
               borderRadius: BorderRadius.circular(15),
             ),
           ),
@@ -64,11 +64,11 @@ class RegisterScreen extends StatelessWidget {
             labelStyle: TextStyle(fontSize: 12),
             contentPadding: EdgeInsets.only(left: 30),
             enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.blueGrey[50]),
+              borderSide: BorderSide(color: Colors.blueGrey[50]!),
               borderRadius: BorderRadius.circular(15),
             ),
             focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.blueGrey[50]),
+              borderSide: BorderSide(color: Colors.blueGrey[50]!),
               borderRadius: BorderRadius.circular(15),
             ),
           ),
@@ -82,11 +82,11 @@ class RegisterScreen extends StatelessWidget {
             labelStyle: TextStyle(fontSize: 12),
             contentPadding: EdgeInsets.only(left: 30),
             enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.blueGrey[50]),
+              borderSide: BorderSide(color: Colors.blueGrey[50]!),
               borderRadius: BorderRadius.circular(15),
             ),
             focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.blueGrey[50]),
+              borderSide: BorderSide(color: Colors.blueGrey[50]!),
               borderRadius: BorderRadius.circular(15),
             ),
           ),
