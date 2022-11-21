@@ -195,7 +195,7 @@ class _BodyState extends State<Body> {
               MediaQuery.of(context).size.width >= 1300 //Responsive
                   ? SizedBox()
                   : Image.asset(
-                      'images/illustration-2.png',
+                      'images/illustration-1.png',
                       width: 300,
                     ),
             ],
@@ -208,8 +208,8 @@ class _BodyState extends State<Body> {
         //),
         MediaQuery.of(context).size.width >= 1300 //Responsive
             ? Image.asset(
-                'images/illustration-2.png',
-                width: 350,
+                'images/illustration-1.png',
+                width: 325,
               )
             : SizedBox(),
         Padding(
