@@ -195,7 +195,7 @@ class _BodyState extends State<Body> {
               MediaQuery.of(context).size.width >= 1300 //Responsive
                   ? SizedBox()
                   : Image.asset(
-                      'images/illustration-1.png',
+                      'images/illustration-2.png',
                       width: 300,
                     ),
             ],
@@ -208,7 +208,7 @@ class _BodyState extends State<Body> {
         //),
         MediaQuery.of(context).size.width >= 1300 //Responsive
             ? Image.asset(
-                'images/illustration-1.png',
+                'images/illustration-2.png',
                 width: 350,
               )
             : SizedBox(),
@@ -375,7 +375,7 @@ class _BodyState extends State<Body> {
       future: _futureUserData,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const CircularProgressIndicator.adaptive();
+          return CircularProgressIndicator();
         }
 
         if (snapshot.hasData) {
