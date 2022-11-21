@@ -375,9 +375,7 @@ class _BodyState extends State<Body> {
       future: _futureUserData,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return Column(
-            children: [SizedBox()],
-          );
+          return const CircularProgressIndicator.adaptive();
         }
 
         if (snapshot.hasData) {

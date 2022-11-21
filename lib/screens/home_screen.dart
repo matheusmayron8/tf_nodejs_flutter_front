@@ -1,5 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_atv_final/models/notes.dart';
+import 'package:flutter_atv_final/services/api_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -9,8 +11,24 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final List<String> notes = <String>['Nota 1', 'Nota 2', 'Nota 3', 'Nota 4'];
   final TextEditingController fieldAddNoteController = TextEditingController();
+
+  Future<List<Notes>>? _futureNotes;
+  //List<Notes> notes = [];
+  final _apiService = ApiService();
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {
+        if (_futureNotes == null) {
+          _futureNotes = _apiService.getAllNotes();
+        }
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,15 +47,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget body(BuildContext context) {
     return Container(
-      height: 500,
+      height: MediaQuery.of(context).size.height * 0.85,
       alignment: Alignment.center,
       child: Container(
-        decoration: BoxDecoration(border: Border.all()),
         width: 800,
         child: Center(
             child: Column(
           children: [
-            SizedBox(height: 50),
+            SizedBox(height: 10),
             Text(
               'Atividade Final NodeJS',
               style: TextStyle(
@@ -45,7 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 25),
+            SizedBox(height: 10),
             add_new_note(context),
             SizedBox(height: 25),
             Expanded(child: list_notes(context))
@@ -57,62 +74,83 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget list_notes(BuildContext context) {
     return SingleChildScrollView(
-      child: ListView.builder(
-        shrinkWrap: true,
-        physics: const AlwaysScrollableScrollPhysics(),
-        controller: ScrollController(),
-        scrollDirection: Axis.vertical,
-        padding: const EdgeInsets.all(8),
-        itemCount: notes.length,
-        itemBuilder: (context, index) {
-          return note_item(context, notes[index], index);
-        },
+        child: FutureBuilder<List<Notes>>(
+      future: _futureNotes,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return CircularProgressIndicator.adaptive();
+        }
+
+        if (snapshot.hasData) {
+          final list = snapshot.data!;
+          list.sort((a, b) => a.id.compareTo(b.id));
+          return ListView.builder(
+            shrinkWrap: true,
+            padding: const EdgeInsets.all(8),
+            itemCount: list.length,
+            itemBuilder: (context, index) {
+              return Column(
+                children: [
+                  note_item(context, list[index], index),
+                  SizedBox(
+                    height: 4,
+                  ),
+                ],
+              );
+            },
+          );
+        } else if (snapshot.hasError) {
+          if (snapshot.error.toString().contains('401')) {
+            Navigator.pop(context);
+          } else if (snapshot.error.toString().contains('400')) {
+            showSnackbarFailed(context);
+            reloadNotes();
+          }
+          return Text('Recarregando a listagem...');
+        }
+
+        return Container();
+      },
+    ));
+  }
+
+  void changeCompletedStatus({required int noteId, required bool completed}) {
+    setState(() {
+      _futureNotes = _apiService.changeNoteStatus(
+        noteId: noteId,
+        completed: completed,
+      );
+    });
+  }
+
+  Widget note_item(BuildContext context, Notes note, int index) {
+    return Card(
+      child: ListTile(
+        title: Text(note.note),
+        leading: Checkbox(
+            activeColor: Color.fromARGB(255, 68, 209, 155),
+            value: note.completed,
+            onChanged: ((value) => {
+                  changeCompletedStatus(
+                    noteId: note.id,
+                    completed: !note.completed,
+                  )
+                })),
+        trailing: IconButton(
+          onPressed: () => {deleteNote(noteId: note.id)},
+          icon: Icon(
+            Icons.delete,
+            color: Colors.red,
+          ),
+        ),
       ),
     );
   }
 
-  Widget note_item(BuildContext context, String noteText, int index) {
-    return Container(
-      decoration: BoxDecoration(border: Border.all()),
-      padding: EdgeInsets.all(8),
-      height: 50,
-      child: Center(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Checkbox(value: false, onChanged: ((value) => {})),
-            SizedBox(
-              width: 20,
-            ),
-            Flexible(
-              child: Container(
-                alignment: Alignment.centerLeft,
-                child: Text(noteText),
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                IconButton(
-                  onPressed: () => {},
-                  icon: Icon(Icons.edit),
-                ),
-                IconButton(
-                  onPressed: () => {
-                    setState(() => {notes.removeAt(index)})
-                  },
-                  icon: Icon(
-                    Icons.delete,
-                    color: Colors.red,
-                  ),
-                ),
-              ],
-            )
-          ],
-        ),
-      ),
-    );
+  void deleteNote({required noteId}) {
+    setState(() {
+      _futureNotes = _apiService.deleteNote(noteId: noteId);
+    });
   }
 
   Widget add_new_note(BuildContext context) {
@@ -165,9 +203,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               onPressed: () => {
-                setState(() => {
-                      notes.add(fieldAddNoteController.text),
-                    }),
+                addNewNote(noteText: fieldAddNoteController.text),
                 fieldAddNoteController.clear()
               },
               style: ElevatedButton.styleFrom(
@@ -182,6 +218,39 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
+  }
+
+  void addNewNote({required String noteText}) {
+    setState(() {
+      _futureNotes = null;
+      _futureNotes = _apiService.addNewNote(noteText: noteText);
+    });
+  }
+
+  void reloadNotes() {
+    setState(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          _futureNotes = _apiService.getAllNotes();
+        });
+      });
+    });
+  }
+
+  void showSnackbarFailed(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Nao foi possível realizar a ação. Verifique os dados e tente novamente.',
+              style: TextStyle(color: Colors.black),
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      });
+    });
   }
 }
 
